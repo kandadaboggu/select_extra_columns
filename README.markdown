@@ -43,11 +43,11 @@ Usage
 ### Now return the extra columns in your finders.
 
     users = User.find(:all, :joins => :posts, :select => "users.*, count(posts.id) as post_count",
-                    :extra_column => {:post_count => :integer} )
+                    :extra_columns => {:post_count => :integer} )
     users.first.post_count # returns the post count
 
     users = User.find(:all, :joins => :address, :select => "users.*, addresses.street as street, addresses.city as city",
-                    :extra_column => {:street => :string, :city => :string } )
+                    :extra_columns => {:street => :string, :city => :string } )
     users.first.street # returns the street
     users.first.city # returns the city
 
