@@ -47,7 +47,7 @@ Usage
     users.first.post_count # returns the post count
 
     users = User.find(:all, :joins => :address, :select => "users.*, addresses.street as street, addresses.city as city",
-                    :extra_column => {:street => :string, :city => :city } )
+                    :extra_column => {:street => :string, :city => :string } )
     users.first.street # returns the street
     users.first.city # returns the city
 
