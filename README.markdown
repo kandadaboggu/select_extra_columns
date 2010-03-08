@@ -26,7 +26,7 @@ Usage
 
 
     class User < ActiveRecord::Base
- 	  select_extra_column
+ 	  select_extra_columns
  	  has_many :posts 
  	  has_one :address
     end
