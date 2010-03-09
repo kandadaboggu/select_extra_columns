@@ -1,6 +1,11 @@
+2010-04-08
+==========
+* Added stricter validation for :extra_columns input.
+
+
 2010-03-08
 ==========
-* Added support for multiple input types for extra_columns
+* Added support for multiple input formats for :extra_columns
 
 2010-03-08
 ==========

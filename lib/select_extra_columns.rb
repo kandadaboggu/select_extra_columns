@@ -63,8 +63,10 @@ module SelectExtraColumns
         extra_columns.each do |col_detail|
           col_detail = [col_detail] if col_detail.is_a?(Symbol) or col_detail.is_a?(String)
           next unless col_detail.is_a?(Array)
-          col_name, col_type = col_detail[0].to_s, (col_detail[1] || "string").to_s 
-          result << ActiveRecord::ConnectionAdapters::Column.new(col_name, nil, col_type)
+          col_name, col_type = col_detail[0], (col_detail[1] || "string") 
+          # ignore if not valid type
+          next unless [String, Symbol].include?(col_name.class) and [String, Symbol].include?(col_type.class)
+          result << ActiveRecord::ConnectionAdapters::Column.new(col_name.to_s, nil, col_type.to_s)
         end
       end
     end
