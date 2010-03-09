@@ -67,9 +67,9 @@ Option accepts String/Symbol/Array/Hash as input.
 Example:
 
 	#String,Symbol format
-	:extra_columns => :first_name    # Single string field: `first_name`
+	:extra_columns => :first_name    # Single string field: `first_name`(type is inferred as string)
 	
-	:extra_columns => "first_name"   # Single string field: `first_name`
+	:extra_columns => "first_name"   # Single string field: `first_name`(type is inferred as string)
 	
 	# Hash format
 	:extra_columns => {              # Two string fields and a boolean field
