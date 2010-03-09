@@ -15,7 +15,7 @@ module SelectExtraColumns
     
     def find_every_with_extra_columns options
       extra_columns = options.delete(:extra_columns)
-      return find_every_without_extra_columns options if extra_columns.empty? 
+      return find_every_without_extra_columns options if extra_columns.nil? 
       klass_with_extra_columns(extra_columns).send(:find_every, options)   
     end
     
@@ -28,17 +28,15 @@ module SelectExtraColumns
         
     def klass_with_extra_columns extra_columns
       # look for the class in the cache.
-      self.klasses_with_extra_columns.select do | class_details |
-        return class_details[1] if class_details[0] == extra_columns 
-      end
-      # load the column definition
-      cols, cols_hash = self.columns, self.columns_hash
-      self.clone.tap do |klass|
-        prepare_extra_column_klass(klass, cols, cols_hash, extra_columns)
-      end
+      self.klasses_with_extra_columns.find{|k| k.extra_columns == extra_columns} or
+        prepare_extra_column_klass(extra_columns)
     end
     
-    def prepare_extra_column_klass klass, cols, cols_hash, extra_columns
+    def prepare_extra_column_klass extra_columns
+      extra_column_definitions = prepare_extra_column_definitions(extra_columns)
+      return self if extra_column_definitions.empty?      
+      cols, cols_hash = self.columns, self.columns_hash
+      self.clone.tap do |klass|
         class << klass
           attr_accessor :extra_columns
           # over ride readonly_attributes to include the extra_columns
@@ -47,14 +45,28 @@ module SelectExtraColumns
           end
         end
         #Make new copy of @columns, and @columns_hash and @extra_columns variables
-        klass.instance_variable_set("@columns", cols.clone)   
+        klass.instance_variable_set("@columns", cols.clone)
         klass.instance_variable_set("@columns_hash", cols_hash.clone)
-        klass.extra_columns = extra_columns.clone
-        extra_columns.each do |col_name, col_type|
-          # add the new column to `columns` list and `columns_hash` hash.
-          klass.columns << (klass.columns_hash[col_name.to_s] = ActiveRecord::ConnectionAdapters::Column.new(col_name.to_s, nil, col_type.to_s))
+        klass.extra_columns = extra_columns.is_a?(Symbol) ? extra_columns : extra_columns.clone
+        extra_column_definitions.each do |ecd|
+          klass.columns << (klass.columns_hash[ecd.name] = ecd)
         end
-        self.klasses_with_extra_columns = [[extra_columns, klass]] # add the class to the cache
+        self.klasses_with_extra_columns = [klass] # add the class to the cache
+      end
+    end
+    
+    def prepare_extra_column_definitions extra_columns
+      extra_columns = [extra_columns] if extra_columns.is_a?(Symbol) or extra_columns.is_a?(String) 
+      extra_columns = extra_columns.to_a if extra_columns.is_a?(Hash)
+      return [] unless extra_columns.is_a?(Array)
+      [].tap do |result|
+        extra_columns.each do |col_detail|
+          col_detail = [col_detail] if col_detail.is_a?(Symbol) or col_detail.is_a?(String)
+          next unless col_detail.is_a?(Array)
+          col_name, col_type = col_detail[0].to_s, (col_detail[1] || "string").to_s 
+          result << ActiveRecord::ConnectionAdapters::Column.new(col_name, nil, col_type)
+        end
+      end
     end
   end
 end
