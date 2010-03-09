@@ -80,14 +80,13 @@ Dynamically added column fields are read only. Any value set to these fields are
 
 Option accepts String/Symbol/Array/Hash as input.
 
-Example:
 
-	#String,Symbol format
+String,Symbol format
 	:extra_columns => :first_name    # Single string field: `first_name`(type is inferred as string)
 	
 	:extra_columns => "first_name"   # Single string field: `first_name`(type is inferred as string)
 	
-	# Hash format
+Hash format
 	:extra_columns => {              # Two string fields and a boolean field
 	                       :first_name => :string, 
 	                       :last_name  => :string, 
@@ -100,7 +99,7 @@ Example:
 	                       "has_flag"   => :boolean
 	                  }
 	
-	# Array format
+Array format
 	:extra_columns => [              # Two string fields and a boolean field
 						[:first_name, :string], 
 						[:last_name,  :string], 
