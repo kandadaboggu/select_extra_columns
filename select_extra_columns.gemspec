@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = "select_extra_columns"
-  s.version = "0.0.4"
+  s.version = "0.0.5"
   s.date = "2010-03-09"
   s.summary = "Enhances the ActiveRecord finders to return join/aggregate/calculated columns along with standard table columns."
   s.email = "kandadaboggu@gmail.com"

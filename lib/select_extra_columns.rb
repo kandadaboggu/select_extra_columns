@@ -35,18 +35,16 @@ module SelectExtraColumns
     def prepare_extra_column_klass extra_columns
       extra_column_definitions = prepare_extra_column_definitions(extra_columns)
       return self if extra_column_definitions.empty?      
-      cols, cols_hash = self.columns, self.columns_hash
-      self.clone.tap do |klass|
-        class << klass
-          attr_accessor :extra_columns
-          # over ride readonly_attributes to include the extra_columns
-          def readonly_attributes
-            (super || []) + self.extra_columns.keys(&:to_s)
-          end
+      read_only_attrs = extra_column_definitions.collect{|cd| ":#{cd.name}" }.join(",")
+      klass_name      = "#{self.name}#{Time.now.to_i}#{extra_columns.hash.abs}"
+      class_eval(<<-RUBY, __FILE__, __LINE__)
+        class ::#{klass_name} < #{self.name}
+          set_table_name :#{self.table_name}
+          attr_readonly #{read_only_attrs}
+          class_inheritable_accessor :extra_columns 
         end
-        #Make new copy of @columns, and @columns_hash and @extra_columns variables
-        klass.instance_variable_set("@columns", cols.clone)
-        klass.instance_variable_set("@columns_hash", cols_hash.clone)
+      RUBY
+      klass_name.constantize.tap do |klass|
         klass.extra_columns = extra_columns.is_a?(Symbol) ? extra_columns : extra_columns.clone
         extra_column_definitions.each do |ecd|
           klass.columns << (klass.columns_hash[ecd.name] = ecd)

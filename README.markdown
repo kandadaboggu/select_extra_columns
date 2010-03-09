@@ -60,7 +60,23 @@ Usage
     users.first.street 		# returns the street
     users.first.active 		# returns true/false
 
-### Input format for `:extra_options` 
+
+Dynamically added column fields are read only. Any value set to these fields are ignored during save.
+
+    user = User.first(:joins => :address, :select => "*, addresses.street as street",
+                    :extra_columns => :street)
+    user.city  # => "San Francisco"
+    ...
+    user.city = "Houston" # change the value
+    user.save
+
+    user = User.first(:joins => :address, :select => "*, addresses.street as street",
+                    :extra_columns => :street)
+    user.city  # => "San Francisco"
+    
+ 
+	
+### Input format for `:extra_columns` 
 
 Option accepts String/Symbol/Array/Hash as input.
 
@@ -98,7 +114,7 @@ Example:
 						[:has_flag,   :boolean]
 						]
 
-### Valid data types of fields in `:extra_columns`   
+### Valid data types for column fields in `:extra_columns`   
 	:binary
 	:boolean
 	:date
