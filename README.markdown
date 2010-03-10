@@ -7,9 +7,11 @@ Installation
 ============
 Use either the plugin or the gem installation method depending on your preference. If you're not sure, the plugin method is simpler. 
 
+## As a Plugin
+
     ./script/plugin install git://github.com/kandadaboggu/select_extra_column.git 
 
-### Via gem
+## As a Gem
 Add the following to your application's environment.rb:
     config.gem "select_extra_column", :source => "http://gemcutter.org"
 
@@ -17,12 +19,10 @@ Install the gem:
     rake gems:install
 
 
-Usage
-=====
+Getting Started
+===============
 
-## Getting Started
-
-### Enable select_extra_column in your ActiveRecord model.
+## Enable select_extra_column in your ActiveRecord model.
 
 
     class User < ActiveRecord::Base
@@ -40,7 +40,7 @@ Usage
     end
 
 
-### Now return the extra columns in your finders.
+## Use the extra columns in your finders.
 
     user = User.first(:joins => :address, :select => "*, addresses.street as street",
                     :extra_columns => :street)
@@ -78,7 +78,7 @@ Dynamically added column fields are read only. Any value set to these fields are
 	
 ### Input format for `:extra_columns` 
 
-Option accepts String/Symbol/Array/Hash as input.
+This option accepts `String`/`Symbol`/`Array`/`Hash` as input.
 
 
 #### String,Symbol format
@@ -113,7 +113,42 @@ Option accepts String/Symbol/Array/Hash as input.
 						[:has_flag,   :boolean]
 						]
 
-### Valid data types for column fields in `:extra_columns`   
+## Sharing `extra_columns` definition across finders
+You can declare the extra columns in your model and use them across finders
+    class User < ActiveRecord::Base
+ 	  select_extra_columns
+ 	  
+ 	  extra_columns :address_info, :street, :city
+ 	  extra_columns :post_info, [:post_count, :integer], :last_post_at => :datetime
+ 	  
+ 	  has_many :posts 
+ 	  has_one :address
+    end
+
+Now `:user_info` and `:post_info` can be used in finders.
+
+    users = User.find(:all, :joins => :posts, :select => "users.*, count(posts.id) as post_count, max(posts.created_at) as last_post_at",
+                    :extra_columns => :post_info)
+
+    user = User.first(:joins => :address, :select => "users.*, addresses.street as street, addresses.city as city",
+                    :extra_columns => :address_info )
+
+## Naming conflicts
+When a symbol/string is passed as input to `:extra_columns` option, the finder uses cached `extra_columns` definition by the given name.
+If no definition is found, then finder creates a new `extra_columns` definition with the input as a column.
+ 
+    class User < ActiveRecord::Base
+ 	  select_extra_columns
+ 	  
+ 	  extra_columns :post_count, [:post_count, :integer], :last_post_at => :datetime
+ 	end
+
+The finder call below,  `post_count` maps on to a column in the select list and a `extra_columns` definition. Finder chooses the `extra_columns` definition. 
+    users = User.find(:all, :joins => :posts, :select => "users.*, count(posts.id) as post_count, max(posts.created_at) as last_post_at",
+                    :extra_columns => :post_count)
+
+
+## Valid data types for column fields in `:extra_columns`   
 	:binary
 	:boolean
 	:date

@@ -1,3 +1,7 @@
+2010-04-11
+==========
+* Added forward declaration feature
+
 2010-04-09
 ==========
 * Changed cloning to inheritance. 

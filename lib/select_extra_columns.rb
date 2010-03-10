@@ -28,11 +28,14 @@ module SelectExtraColumns
         
     def klass_with_extra_columns extra_columns
       # look for the class in the cache.
-      self.klasses_with_extra_columns.find{|k| k.extra_columns == extra_columns} or
-        prepare_extra_column_klass(extra_columns)
+      (
+        [String, Symbol].include?(extra_columns.class) ? 
+          self.klasses_with_extra_columns.find{|k| k.extra_columns_key == extra_columns.to_s} :
+          self.klasses_with_extra_columns.find{|k| k.extra_columns == extra_columns}
+      ) or extra_columns_class(extra_columns)
     end
     
-    def prepare_extra_column_klass extra_columns
+    def extra_columns_class extra_columns, extra_columns_key=nil
       extra_column_definitions = prepare_extra_column_definitions(extra_columns)
       return self if extra_column_definitions.empty?      
       read_only_attrs = extra_column_definitions.collect{|cd| ":#{cd.name}" }.join(",")
@@ -41,11 +44,12 @@ module SelectExtraColumns
         class ::#{klass_name} < #{self.name}
           set_table_name :#{self.table_name}
           attr_readonly #{read_only_attrs}
-          class_inheritable_accessor :extra_columns 
+          class_inheritable_accessor :extra_columns, :extra_columns_key 
         end
       RUBY
       klass_name.constantize.tap do |klass|
         klass.extra_columns = extra_columns.is_a?(Symbol) ? extra_columns : extra_columns.clone
+        klass.extra_columns_key = (extra_columns_key || klass_name).to_s
         extra_column_definitions.each do |ecd|
           klass.columns << (klass.columns_hash[ecd.name] = ecd)
         end
@@ -53,6 +57,10 @@ module SelectExtraColumns
       end
     end
     
+    def extra_columns extra_columns_key, *args
+      extra_columns_class args.concat(args.extract_options!.to_a), extra_columns_key 
+    end
+
     def prepare_extra_column_definitions extra_columns
       extra_columns = [extra_columns] if extra_columns.is_a?(Symbol) or extra_columns.is_a?(String) 
       extra_columns = extra_columns.to_a if extra_columns.is_a?(Hash)
