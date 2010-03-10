@@ -113,7 +113,7 @@ This option accepts `String`/`Symbol`/`Array`/`Hash` as input.
 						[:has_flag,   :boolean]
 						]
 
-## Sharing `extra_columns` definition across finders
+### Sharing `extra_columns` definition across finders
 You can declare the extra columns in your model and use them across finders
     class User < ActiveRecord::Base
  	  select_extra_columns

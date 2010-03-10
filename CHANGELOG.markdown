@@ -1,6 +1,6 @@
 2010-04-11
 ==========
-* Added forward declaration feature
+* Added support for sharing `extra_columns` definition across finders
 
 2010-04-09
 ==========
