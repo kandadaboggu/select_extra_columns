@@ -1,12 +1,17 @@
-2010-04-11
+2010-03-11
+==========
+* Added support for `find_by_sql`.
+* Exposed `find_extra_columns_class` method.
+
+2010-03-10
 ==========
 * Added support for sharing `extra_columns` definition across finders
 
-2010-04-09
+2010-03-09
 ==========
 * Changed cloning to inheritance. 
 
-2010-04-09
+2010-03-09
 ==========
 * Added stricter validation for :extra_columns input.
 

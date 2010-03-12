@@ -60,7 +60,16 @@ Getting Started
     users.first.street 		# returns the street
     users.first.active 		# returns true/false
 
-
+	users = User.find_by_sql("SELECT A.*, count(B.id) as post_count 
+								FROM   users A, posts B 
+								WHERE  A.id = B.user_id AND B.ptype = 'public'
+								GROUP BY A.id
+									UNION 
+								SELECT A.*, count(B.id) as post_count 
+								FROM   users A, customer_posts B 
+								WHERE  A.id = B.user_id AND B.ptype = 'private'
+								GROUP BY A.id", 
+							:extra_columns => :post_count)
 Dynamically added column fields are read only. Any value set to these fields are ignored during save.
 
     user = User.first(:joins => :address, :select => "*, addresses.street as street",
@@ -127,12 +136,12 @@ You can declare the extra columns in your model and use them across finders
 
 Now `:user_info` and `:post_info` can be used in finders.
 
-    users = User.find(:all, :joins => :posts, :select => "users.*, count(posts.id) as post_count, max(posts.created_at) as last_post_at",
-                    :extra_columns => :post_info)
+    users = User.all(:joins => :posts, :extra_columns => :post_info 
+    				:select => "users.*, count(posts.id) as post_count, max(posts.created_at) as last_post_at")
 
-    user = User.first(:joins => :address, :select => "users.*, addresses.street as street, addresses.city as city",
-                    :extra_columns => :address_info )
-
+    user = User.first(:joins => :address, :extra_columns => :address_info, 
+    				:select => "users.*, addresses.street as street, addresses.city as city")
+	
 ## Naming conflicts
 When a symbol/string is passed as input to `:extra_columns` option, the finder uses cached `extra_columns` definition by the given name.
 If no definition is found, then finder creates a new `extra_columns` definition with the input as a column.
@@ -143,10 +152,13 @@ If no definition is found, then finder creates a new `extra_columns` definition 
  	  extra_columns :post_count, [:post_count, :integer], :last_post_at => :datetime
  	end
 
-The finder call below,  `post_count` maps on to a column in the select list and a `extra_columns` definition. Finder chooses the `extra_columns` definition. 
-    users = User.find(:all, :joins => :posts, :select => "users.*, count(posts.id) as post_count, max(posts.created_at) as last_post_at",
+In the `finder` call below,  `post_count` maps on to a column name and a `extra_columns` definition name. Finder chooses the `extra_columns` definition. 
+    users = User.all(:joins => :posts, :select => "users.*, count(posts.id) as post_count, max(posts.created_at) as last_post_at",
                     :extra_columns => :post_count)
 
+## Accessing the extra column model
+The gem creates and caches a model for every unique `extra_column` configuration. This model can be accessed using the `find_extra_columns_class` method.
+	User.find_extra_columns_class(:post_count).find_by_sql("")
 
 ## Valid data types for column fields in `:extra_columns`   
 	:binary
